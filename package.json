@@ -3,14 +3,17 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev & convex dev",
     "build": "next build",
     "start": "next start",
     "lint": "biome check",
     "format": "biome format --write"
   },
   "dependencies": {
+    "@clerk/clerk-react": "^5.57.0",
     "@clerk/nextjs": "^6.35.5",
+    "convex": "^1.29.3",
+    "inngest": "^3.46.0",
     "next": "16.0.5",
     "react": "19.2.0",
     "react-dom": "19.2.0"
