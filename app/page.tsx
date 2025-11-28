@@ -1,5 +1,7 @@
 export default function Home() {
   return (
-    <div className="text-3xl">Hello World 12334</div>
+    <div>
+      <h1>Hello</h1>
+    </div>
   );
 }
