@@ -5,15 +5,12 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
 export async function CtaSection() {
-  const { userId } = await auth();
-  const isSignedIn = !!userId;
+  const { userId, isAuthenticated } = await auth();
 
   return (
     <section className="relative py-24 md:py-32 overflow-hidden">
-      {/* Gradient background */}
       <div className="absolute inset-0 gradient-emerald"></div>
 
-      {/* Decorative elements */}
       <div className="absolute top-10 right-10 w-72 h-72 bg-white rounded-full mix-blend-overlay filter blur-3xl opacity-20 animate-float"></div>
       <div
         className="absolute bottom-10 left-10 w-72 h-72 bg-teal-200 rounded-full mix-blend-overlay filter blur-3xl opacity-30 animate-float"
@@ -29,7 +26,7 @@ export async function CtaSection() {
             <p className="text-xl md:text-2xl text-white mb-10 leading-relaxed drop-shadow-md">
               Upload your first podcast and see the magic happen in minutes.
             </p>
-            {isSignedIn ? (
+            {isAuthenticated ? (
               <Link href="/dashboard/upload">
                 <Button
                   size="lg"

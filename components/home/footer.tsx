@@ -6,7 +6,6 @@ export function Footer() {
       <div className="container mx-auto px-4 py-12">
         <div className="max-w-6xl mx-auto">
           <div className="grid md:grid-cols-3 gap-8 mb-8">
-            {/* Brand */}
             <div>
               <div className="flex items-center gap-2 mb-4">
                 <div className="p-2 rounded-lg gradient-emerald">
@@ -22,7 +21,6 @@ export function Footer() {
               </p>
             </div>
 
-            {/* Quick Links */}
             <div>
               <h3 className="font-bold mb-4 text-gray-900">Quick Links</h3>
               <ul className="space-y-2">
@@ -53,7 +51,6 @@ export function Footer() {
               </ul>
             </div>
 
-            {/* Support */}
             <div>
               <h3 className="font-bold mb-4 text-gray-900">Support</h3>
               <ul className="space-y-2">
@@ -85,7 +82,6 @@ export function Footer() {
             </div>
           </div>
 
-          {/* Bottom bar */}
           <div className="pt-8 border-t border-gray-200">
             <p className="text-center text-sm text-gray-600">
               {new Date().getFullYear()} Podassi. This is a demo project.
