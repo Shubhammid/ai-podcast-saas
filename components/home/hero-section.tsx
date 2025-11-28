@@ -71,7 +71,6 @@ export async function HeroSection() {
         </div>
       </div>
 
-      {/* Decorative gradient orbs */}
       <div className="absolute top-0 right-0 w-96 h-96 bg-emerald-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-float"></div>
       <div
         className="absolute bottom-0 left-0 w-96 h-96 bg-teal-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-float"

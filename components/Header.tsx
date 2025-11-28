@@ -65,7 +65,6 @@ export function Header() {
           <div className="flex items-center gap-2 lg:gap-3">
             {isSignedIn ? (
               <>
-                {/* Show "Upgrade to Pro" for Free users */}
                 <Protect
                   condition={(has) =>
                     !has({ plan: "pro" }) && !has({ plan: "ultra" })
@@ -87,7 +86,6 @@ export function Header() {
                   </Link>
                 </Protect>
 
-                {/* Show "Upgrade to Ultra" for Pro users */}
                 <Protect
                   condition={(has) =>
                     has({ plan: "pro" }) && !has({ plan: "ultra" })
@@ -109,7 +107,6 @@ export function Header() {
                   </Link>
                 </Protect>
 
-                {/* Show Ultra badge for Ultra users */}
                 <Protect
                   condition={(has) => has({ plan: "ultra" })}
                   fallback={null}
