@@ -1,99 +1,92 @@
 import type { step as InngestStep } from "inngest";
-import type OpenAI from "openai";
-import { zodResponseFormat } from "openai/helpers/zod";
-import { openai } from "@/lib/openai-client";
-import { type Titles, titlesSchema } from "@/schemas/ai-outputs";
+import { googleAI } from "@/lib/gemini-client";
+import { type Summary, summarySchema } from "@/schemas/ai-outputs";
 import type { TranscriptWithExtras } from "@/types/assemblyai";
 
-const TITLES_SYSTEM_PROMPT =
-  "You are an expert in SEO, content marketing, and viral content creation. You understand what makes titles clickable while maintaining credibility and search rankings.";
+const SUMMARY_SYSTEM_PROMPT = `
+You are an expert podcast content analyst and marketing strategist.
+Your summaries are engaging, insightful, structured, and highlight the most valuable takeaways.
+Always return valid JSON only.
+`;
 
-function buildTitlesPrompt(transcript: TranscriptWithExtras): string {
-  return `Create optimized titles for this podcast episode.
+function buildSummaryPrompt(transcript: TranscriptWithExtras): string {
+  return `
+Analyze this podcast transcript and create a structured summary package.
 
-TRANSCRIPT PREVIEW:
-${transcript.text.substring(0, 2000)}...
+TRANSCRIPT (first 3000 chars):
+${transcript.text.substring(0, 3000)}...
 
 ${
   transcript.chapters.length > 0
-    ? `MAIN TOPICS COVERED:\n${transcript.chapters
-        .map((ch, idx) => `${idx + 1}. ${ch.headline}`)
-        .join("\n")}`
+    ? `AUTO-DETECTED CHAPTERS:
+${transcript.chapters
+  .map((ch, idx) => `${idx + 1}. ${ch.headline} - ${ch.summary}`)
+  .join("\n")}`
     : ""
 }
 
-Generate 4 types of titles:
+Create a summary with:
 
-1. YOUTUBE SHORT TITLES (exactly 3):
-   - 40-60 characters each
-   - Hook-focused, curiosity-driven
-   - Clickable but not clickbait
-   - Use power words and numbers when relevant
+1. FULL OVERVIEW (200–300 words)
+2. KEY BULLET POINTS (5–7 items)
+3. ACTIONABLE INSIGHTS (3–5 items)
+4. TL;DR (one compelling sentence)
 
-2. YOUTUBE LONG TITLES (exactly 3):
-   - 70-100 characters each
-   - Include SEO keywords naturally
-   - Descriptive and informative
-   - Format: "Main Topic: Subtitle | Context or Value Prop"
-
-3. PODCAST EPISODE TITLES (exactly 3):
-   - Creative, memorable titles
-   - Balance intrigue with clarity
-   - Good for RSS feeds and directories
-   - Can use "Episode #" format or standalone
-
-4. SEO KEYWORDS (5-10):
-   - High-traffic search terms
-   - Relevant to podcast content
-   - Mix of broad and niche terms
-   - Focus on what people actually search for
-
-Make titles compelling, accurate, and optimized for discovery.`;
+Return JSON matching the schema:
+{
+  "full": string,
+  "bullets": string[],
+  "insights": string[],
+  "tldr": string
+}
+`;
 }
 
-export async function generateTitles(
+export async function generateSummary(
   step: typeof InngestStep,
-  transcript: TranscriptWithExtras,
-): Promise<Titles> {
-  console.log("Generating title suggestions with GPT-4");
+  transcript: TranscriptWithExtras
+): Promise<Summary> {
+  console.log("Generating summary with Gemini");
 
   try {
-    const createCompletion = openai.chat.completions.create.bind(
-      openai.chat.completions,
+    const geminiCall = async (args: any) => {
+      const model = googleAI.getGenerativeModel({
+        model: args.model,
+        generationConfig: {
+          responseMimeType: "application/json",
+        },
+      });
+
+      const prompt = args.messages
+        .map((m: any) => `${m.role.toUpperCase()}: ${m.content}`)
+        .join("\n\n");
+
+      const result = await model.generateContent(prompt);
+      return { content: result.response.text() };
+    };
+
+    const response = await step.ai.wrap(
+      "generate-summary-gemini",
+      geminiCall,
+      {
+        model: "gemini-2.0-flash",
+        messages: [
+          { role: "system", content: SUMMARY_SYSTEM_PROMPT },
+          { role: "user", content: buildSummaryPrompt(transcript) },
+        ],
+      }
     );
 
-    const response = (await step.ai.wrap(
-      "generate-titles-with-gpt",
-      createCompletion,
-      {
-        model: "gpt-5-mini",
-        messages: [
-          { role: "system", content: TITLES_SYSTEM_PROMPT },
-          { role: "user", content: buildTitlesPrompt(transcript) },
-        ],
-        response_format: zodResponseFormat(titlesSchema, "titles"),
-      },
-    )) as OpenAI.Chat.Completions.ChatCompletion;
-
-    const titlesContent = response.choices[0]?.message?.content;
-    const titles = titlesContent
-      ? titlesSchema.parse(JSON.parse(titlesContent))
-      : {
-          youtubeShort: ["Podcast Episode"],
-          youtubeLong: ["Podcast Episode - Full Discussion"],
-          podcastTitles: ["New Episode"],
-          seoKeywords: ["podcast"],
-        };
-
-    return titles;
+    const parsed = summarySchema.parse(JSON.parse(response.content));
+    return parsed;
   } catch (error) {
-    console.error("GPT titles error:", error);
+    console.error("Gemini summary generation error:", error);
 
     return {
-      youtubeShort: ["⚠️ Title generation failed"],
-      youtubeLong: ["⚠️ Title generation failed - check logs"],
-      podcastTitles: ["⚠️ Title generation failed"],
-      seoKeywords: ["error"],
+      full: "⚠️ Error generating summary.",
+      bullets: ["Summary generation failed."],
+      insights: ["AI generation error."],
+      tldr: "Summary failed.",
     };
   }
 }

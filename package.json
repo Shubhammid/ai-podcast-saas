@@ -12,6 +12,7 @@
   "dependencies": {
     "@clerk/clerk-react": "^5.57.0",
     "@clerk/nextjs": "^6.35.5",
+    "@google/generative-ai": "^0.24.1",
     "@radix-ui/react-label": "^2.1.8",
     "@radix-ui/react-progress": "^1.1.8",
     "@radix-ui/react-select": "^2.2.6",
